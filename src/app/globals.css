@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap');
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-subtle text-emphasis antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "cv02","cv03","cv04","cv11";
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+}
+
+@layer components {
+  /* ─── Buttons ─── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-emphasis px-4 py-2 text-sm font-medium text-white
+           shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emphasis focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-default bg-white px-4 py-2 text-sm font-medium text-default
+           hover:bg-muted focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white
+           shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150;
+  }
+  .btn-icon {
+    @apply flex items-center justify-center rounded-md border border-default bg-white p-2 text-subtle
+           hover:bg-muted hover:text-emphasis transition-all duration-150;
+  }
+  .btn-minimal {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-subtle
+           hover:bg-muted hover:text-emphasis transition-all duration-150;
+  }
+
+  /* ─── Inputs ─── */
+  .input-field {
+    @apply block w-full rounded-md border border-default bg-white px-3 py-2 text-sm text-emphasis
+           placeholder:text-muted
+           focus:border-emphasis focus:outline-none focus:ring-1 focus:ring-emphasis
+           disabled:bg-subtle disabled:text-muted transition-colors;
+  }
+
+  /* ─── Card ─── */
+  .card {
+    @apply rounded-lg border border-default bg-white;
+  }
+
+  /* ─── Page header ─── */
+  .page-header {
+    @apply mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between;
+  }
+  .page-title {
+    @apply text-xl font-semibold text-emphasis tracking-tight;
+  }
+  .page-subtitle {
+    @apply mt-0.5 text-sm text-subtle;
+  }
+
+  /* ─── Badge ─── */
+  .badge {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+  .badge-success {
+    @apply badge bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20;
+  }
+  .badge-danger {
+    @apply badge bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20;
+  }
+  .badge-warning {
+    @apply badge bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20;
+  }
+  .badge-neutral {
+    @apply badge bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-500/10;
+  }
+
+  /* ─── Divider ─── */
+  .divider {
+    @apply border-t border-default;
+  }
+
+  /* ─── Toggle Switch (Cal.com style) ─── */
+  .toggle {
+    @apply relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full border-2 border-transparent
+           transition-colors duration-200 ease-in-out cursor-pointer
+           focus:outline-none focus:ring-2 focus:ring-emphasis focus:ring-offset-2;
+  }
+  .toggle-on {
+    @apply bg-emphasis;
+  }
+  .toggle-off {
+    @apply bg-gray-200;
+  }
+  .toggle-knob {
+    @apply pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow ring-0
+           transition duration-200 ease-in-out;
+  }
+  .toggle-knob-on {
+    @apply translate-x-4;
+  }
+  .toggle-knob-off {
+    @apply translate-x-0.5;
+  }
+
+  /* ─── Modal overlay ─── */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4;
+  }
+  .modal-content {
+    @apply bg-white rounded-lg border border-default shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto;
+  }
+}
+
+@layer utilities {
+  /* Cal.com semantic color aliases */
+  .bg-emphasis { background-color: #111827; }
+  .bg-default { background-color: #ffffff; }
+  .bg-subtle { background-color: #f9fafb; }
+  .bg-muted { background-color: #f3f4f6; }
+  .bg-inverted { background-color: #111827; }
+
+  .text-emphasis { color: #111827; }
+  .text-default { color: #374151; }
+  .text-subtle { color: #6b7280; }
+  .text-muted { color: #9ca3af; }
+  .text-inverted { color: #ffffff; }
+
+  .border-default { border-color: #e5e7eb; }
+  .border-subtle { border-color: #f3f4f6; }
+  .border-emphasis { border-color: #111827; }
+
+  .ring-emphasis { --tw-ring-color: #111827; }
+
+  /* Brand color accents */
+  .bg-brand { background-color: #111827; }
+  .text-brand { color: #111827; }
+  .border-brand { border-color: #111827; }
+  .ring-brand { --tw-ring-color: #111827; }
+}

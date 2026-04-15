@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  confirmed
+  cancelled
+  rescheduled
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  timezone  String   @default("Asia/Kolkata")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  eventTypes            EventType[]
+  availabilitySchedules AvailabilitySchedule[]
+
+  @@map("users")
+}
+
+model EventType {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  title           String
+  slug            String   @unique
+  description     String?
+  durationMinutes Int      @map("duration_minutes")
+  bufferMinutes   Int      @default(0) @map("buffer_minutes")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings  Booking[]
+  questions BookingQuestion[]
+
+  @@index([userId])
+  @@index([slug])
+  @@map("event_types")
+}
+
+model AvailabilitySchedule {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @map("user_id")
+  name      String
+  timezone  String  @default("Asia/Kolkata")
+  isDefault Boolean @default(false) @map("is_default")
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rules         AvailabilityRule[]
+  dateOverrides DateOverride[]
+
+  @@index([userId])
+  @@map("availability_schedules")
+}
+
+model AvailabilityRule {
+  id         Int    @id @default(autoincrement())
+  scheduleId Int    @map("schedule_id")
+  dayOfWeek  Int    @map("day_of_week")
+  startTime  String @map("start_time")
+  endTime    String @map("end_time")
+
+  schedule AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, dayOfWeek])
+  @@map("availability_rules")
+}
+
+model DateOverride {
+  id         Int     @id @default(autoincrement())
+  scheduleId Int     @map("schedule_id")
+  date       String
+  startTime  String? @map("start_time")
+  endTime    String? @map("end_time")
+  isBlocked  Boolean @default(false) @map("is_blocked")
+
+  schedule AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date])
+  @@map("date_overrides")
+}
+
+model BookingQuestion {
+  id          Int     @id @default(autoincrement())
+  eventTypeId Int     @map("event_type_id")
+  label       String
+  required    Boolean @default(false)
+  order       Int     @default(0)
+
+  eventType EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  answers   BookingAnswer[]
+
+  @@map("booking_questions")
+}
+
+model BookingAnswer {
+  id         Int    @id @default(autoincrement())
+  bookingId  Int    @map("booking_id")
+  questionId Int    @map("question_id")
+  answer     String
+
+  booking  Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  question BookingQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("booking_answers")
+}
+
+model Booking {
+  id               Int           @id @default(autoincrement())
+  eventTypeId      Int           @map("event_type_id")
+  bookerName       String        @map("booker_name")
+  bookerEmail      String        @map("booker_email")
+  date             String
+  startTime        String        @map("start_time")
+  endTime          String        @map("end_time")
+  status           BookingStatus @default(confirmed)
+  notes            String?
+  rescheduledFromId Int?         @map("rescheduled_from_id")
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  eventType         EventType      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  answers           BookingAnswer[]
+  rescheduledFrom   Booking?       @relation("RescheduleChain", fields: [rescheduledFromId], references: [id])
+  rescheduledTo     Booking[]      @relation("RescheduleChain")
+
+  @@index([eventTypeId])
+  @@index([date])
+  @@index([eventTypeId, date, status])
+  @@map("bookings")
+}
