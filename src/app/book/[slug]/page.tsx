@@ -41,12 +41,10 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
   const [step, setStep] = useState<Step>("select-date");
 
   useEffect(() => {
-    fetch("/api/event-types")
-      .then((r) => r.json())
+    fetch(`/api/event-types/public/${slug}`)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (!Array.isArray(data)) { setNotFound(true); setLoading(false); return; }
-        const found = data.find((e: EventType) => e.slug === slug);
-        if (found) setEventType(found);
+        if (data) setEventType(data);
         else setNotFound(true);
         setLoading(false);
       })

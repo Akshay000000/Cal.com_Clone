@@ -1,9 +1,11 @@
-import NextAuth, { DefaultSession } from "next-auth"
+// Types for Clerk auth session shape (used by getAuthSession utility)
+export interface AuthUser {
+  id: number;
+  clerkId: string;
+  name: string;
+  email: string;
+}
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string | number
-    } & DefaultSession["user"]
-  }
+export interface AuthSession {
+  user: AuthUser;
 }

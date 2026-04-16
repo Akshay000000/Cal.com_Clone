@@ -113,12 +113,12 @@ export default function EventTypesPage() {
           )}
         </div>
       ) : (
-        <div className="rounded-[8px] border border-[#2c2c2c] bg-[#111111] overflow-hidden">
+        <div className="rounded-[8px] border border-[#2c2c2c] bg-[#111111]">
           <ul className="divide-y divide-[#2c2c2c]">
-            {filtered.map((ev) => (
+            {filtered.map((ev, idx) => (
               <li
                 key={ev.id}
-                className="group flex items-center justify-between px-5 py-[18px] transition-colors hover:bg-white/[0.02]"
+                className={`group flex items-center justify-between px-5 py-[18px] transition-colors hover:bg-white/[0.02] ${idx === 0 ? "rounded-t-[8px]" : ""} ${idx === filtered.length - 1 ? "rounded-b-[8px]" : ""}`}
               >
                 {/* Left: event info */}
                 <div className="min-w-0 flex-1">
@@ -198,7 +198,7 @@ export default function EventTypesPage() {
                       {menuOpen === ev.id && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
-                          <div className="absolute right-0 top-full z-20 mt-1 w-40 rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] py-1 shadow-2xl">
+                          <div className="absolute right-0 bottom-full z-20 mb-1 w-40 rounded-lg border border-[#2c2c2c] bg-[#1a1a1a] py-1 shadow-2xl">
                             <Link
                               href={`/event-types/${ev.id}/edit`}
                               className="flex items-center gap-2 px-3 py-2 text-[13px] text-white hover:bg-white/[0.04] transition-colors"

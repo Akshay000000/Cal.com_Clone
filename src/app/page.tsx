@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Clock, Globe, ChevronRight, ChevronDown, ChevronLeft, MapPin, Video, Monitor, Phone, Users, MessageSquare, MicOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -175,6 +177,16 @@ function MiniCalendar({ highlightedDays }: { highlightedDays: number[] }) {
 }
 
 export default function LandingPage() {
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+
+  // Redirect signed-in users straight to the dashboard
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.replace("/event-types");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   const [currentProfile, setCurrentProfile] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
 

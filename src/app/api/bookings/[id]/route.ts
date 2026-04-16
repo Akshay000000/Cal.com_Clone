@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasOverlap } from "@/lib/slots";
-import { sendCancellationEmail, sendRescheduleEmail } from "@/lib/email";
+import {
+  sendCancellationEmail,
+  sendRescheduleEmail,
+  sendHostCancellationNotification,
+  sendHostRescheduleNotification,
+} from "@/lib/email";
+import { getAuthSession } from "@/lib/auth";
 
 type Params = { params: { id: string } };
 
@@ -12,9 +18,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       where: { id },
       include: {
         eventType: {
-          select: {
-            title: true, slug: true, durationMinutes: true, bufferMinutes: true,
-          },
+          select: { title: true, slug: true, durationMinutes: true, bufferMinutes: true },
         },
         answers: { include: { question: true } },
       },
@@ -29,16 +33,33 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   const id = parseInt(params.id);
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const { status, date, startTime, endTime } = body;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: { eventType: { select: { title: true, durationMinutes: true, bufferMinutes: true } } },
+      include: {
+        eventType: {
+          select: {
+            title: true,
+            durationMinutes: true,
+            bufferMinutes: true,
+            userId: true,
+            user: { select: { name: true, email: true } },
+          },
+        },
+      },
     });
-    if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    if (!booking || booking.eventType.userId !== session.user.id)
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
 
-    // --- Cancel ---
+    const hostName  = booking.eventType.user.name;
+    const hostEmail = booking.eventType.user.email;
+
+    // ── Cancel ──────────────────────────────────────────────────────────────
     if (status === "cancelled") {
       const updated = await prisma.booking.update({
         where: { id },
@@ -46,7 +67,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         include: { eventType: { select: { title: true } } },
       });
 
-      sendCancellationEmail({
+      const emailBase = {
         bookerName: booking.bookerName,
         bookerEmail: booking.bookerEmail,
         eventTitle: booking.eventType.title,
@@ -54,14 +75,22 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         startTime: booking.startTime,
         endTime: booking.endTime,
         durationMinutes: booking.eventType.durationMinutes,
-      }).catch(console.error);
+        hostName,
+        hostEmail,
+      };
+
+      // Notify booker
+      sendCancellationEmail(emailBase).catch(console.error);
+      // Notify host (only for real accounts, skip demo@cal.app)
+      if (hostEmail !== "demo@cal.app") {
+        sendHostCancellationNotification(emailBase).catch(console.error);
+      }
 
       return NextResponse.json(updated);
     }
 
-    // --- Reschedule ---
+    // ── Reschedule ───────────────────────────────────────────────────────────
     if (status === "rescheduled" && date && startTime && endTime) {
-      // Check for conflicts on the new slot
       const existing = await prisma.booking.findMany({
         where: { eventTypeId: booking.eventTypeId, date, status: "confirmed" },
       });
@@ -72,13 +101,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           { status: 409 }
         );
 
-      // Mark old booking as rescheduled
-      await prisma.booking.update({
-        where: { id },
-        data: { status: "rescheduled" },
-      });
+      await prisma.booking.update({ where: { id }, data: { status: "rescheduled" } });
 
-      // Create the new booking linked to the old one
       const newBooking = await prisma.booking.create({
         data: {
           eventTypeId: booking.eventTypeId,
@@ -94,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         include: { eventType: { select: { title: true, durationMinutes: true } } },
       });
 
-      sendRescheduleEmail({
+      const rescheduleBase = {
         bookerName: booking.bookerName,
         bookerEmail: booking.bookerEmail,
         eventTitle: booking.eventType.title,
@@ -102,9 +126,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         startTime,
         endTime,
         durationMinutes: booking.eventType.durationMinutes,
+        hostName,
+        hostEmail,
         oldDate: booking.date,
         oldStartTime: booking.startTime,
-      }).catch(console.error);
+      };
+
+      // Notify booker
+      sendRescheduleEmail(rescheduleBase).catch(console.error);
+      // Notify host
+      if (hostEmail !== "demo@cal.app") {
+        sendHostRescheduleNotification(rescheduleBase).catch(console.error);
+      }
 
       return NextResponse.json(newBooking);
     }

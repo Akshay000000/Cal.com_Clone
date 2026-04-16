@@ -26,7 +26,7 @@ import {
   LogOut,
   ChevronRight
 } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 const mainNav = [
   { href: "/event-types", label: "Event types", icon: Link2 },
@@ -50,22 +50,28 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { data: session } = useSession();
+  const { user, isSignedIn } = useUser();
+  const { signOut } = useClerk();
+
+  const displayName = isSignedIn
+    ? (user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User")
+    : "Demo User";
+  const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 flex w-[250px] flex-col bg-[#111111]">
       {/* User / Logo area */}
       <div className="relative">
-        <div 
+        <div
           onClick={() => setIsProfileOpen(!isProfileOpen)}
           className="flex h-14 items-center gap-2.5 px-4 cursor-pointer hover:bg-white/[0.04] transition-colors"
         >
           <div className="relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-[12px] font-bold text-white">
-            {session?.user?.name?.charAt(0).toUpperCase() || 'U'}
+            {displayInitial}
             <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#111111] bg-[#10b981]"></div>
           </div>
           <div className="flex items-center gap-1 min-w-0 flex-1">
-            <span className="text-[14px] font-semibold text-white truncate">{session?.user?.name || 'User'}</span>
+            <span className="text-[14px] font-semibold text-white truncate">{displayName}</span>
             <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${isProfileOpen ? "rotate-180" : ""}`} />
           </div>
           <button 
@@ -120,16 +126,27 @@ export default function Sidebar() {
               <div className="my-1 border-t border-[#2c2c2c]"></div>
 
               <div className="px-1.5 py-1">
-                <button 
+                {isSignedIn ? (
+                <button
                   onClick={() => {
                     setIsProfileOpen(false);
-                    signOut({ callbackUrl: '/' });
+                    signOut({ redirectUrl: '/' });
                   }}
                   className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-[#f87171] hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign out
                 </button>
+                ) : (
+                <Link
+                  href="/sign-in"
+                  onClick={() => setIsProfileOpen(false)}
+                  className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors"
+                >
+                  <LogOut className="h-4 w-4 text-gray-300" />
+                  Sign in
+                </Link>
+                )}
               </div>
 
             </div>

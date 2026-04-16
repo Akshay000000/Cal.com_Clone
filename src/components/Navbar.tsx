@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight, FileText, Store, Users, CreditCard, Settings2, BookOpen, Code2, Webhook, Moon, Zap, Link2, Calendar, UserPlus } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 const resourcesItems = [
   { icon: FileText, label: "Font: Cal Sans UI & Text", desc: "Our own variable typeface for user interface design" },
@@ -57,7 +57,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const { data: session } = useSession();
+  const { isSignedIn } = useUser();
+  const { signOut } = useClerk();
 
   const handleEnter = (menu: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -172,7 +173,7 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-5">
-        {session ? (
+        {isSignedIn ? (
           <>
             <Link
               href="/event-types"
@@ -181,7 +182,7 @@ export default function Navbar() {
               Dashboard
             </Link>
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => signOut({ redirectUrl: '/' })}
               className="inline-flex items-center gap-1.5 rounded-full bg-[#1a1a1a] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-black transition-colors"
             >
               Sign out
@@ -190,7 +191,7 @@ export default function Navbar() {
         ) : (
           <>
             <Link
-              href="/login"
+              href="/sign-in"
               className="hidden sm:inline-flex text-[14px] font-semibold text-[#1a1a1a] hover:opacity-70 transition-opacity"
             >
               Sign in

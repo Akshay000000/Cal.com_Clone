@@ -1,7 +1,5 @@
 "use client";
-
-import { SessionProvider } from "next-auth/react";
-
+// Kept as a no-op shim — auth is handled by Clerk (ClerkProvider in layout.tsx)
 export default function ClientSessionProvider({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return <>{children}</>;
 }

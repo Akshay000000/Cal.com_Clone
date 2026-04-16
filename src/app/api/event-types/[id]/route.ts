@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/auth";
 
 type Params = { params: { id: string } };
 
@@ -20,6 +21,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PUT(req: NextRequest, { params }: Params) {
   const id = parseInt(params.id);
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const et = await prisma.eventType.findUnique({ where: { id } });
+    if (!et || et.userId !== session.user.id)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const body = await req.json();
 
     if (body.slug) {
@@ -30,7 +38,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
         return NextResponse.json({ error: "Slug already in use" }, { status: 409 });
     }
 
-    // Handle questions replacement if provided
     const updateData: Record<string, unknown> = {};
     if (body.title !== undefined) updateData.title = body.title;
     if (body.slug !== undefined) updateData.slug = body.slug;
@@ -41,7 +48,6 @@ export async function PUT(req: NextRequest, { params }: Params) {
       updateData.bufferMinutes = parseInt(body.bufferMinutes);
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
-    // If questions array provided, replace all questions
     if (Array.isArray(body.questions)) {
       await prisma.bookingQuestion.deleteMany({ where: { eventTypeId: id } });
       updateData.questions = {
@@ -55,12 +61,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
       };
     }
 
-    const et = await prisma.eventType.update({
+    const updated = await prisma.eventType.update({
       where: { id },
       data: updateData,
       include: { questions: { orderBy: { order: "asc" } } },
     });
-    return NextResponse.json(et);
+    return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
   }
@@ -69,6 +75,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const id = parseInt(params.id);
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const et = await prisma.eventType.findUnique({ where: { id } });
+    if (!et || et.userId !== session.user.id)
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     await prisma.eventType.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {

@@ -86,7 +86,7 @@ function ConfirmationContent() {
 
           <div className="mt-4 text-center">
             <Link
-              href="/"
+              href="/event-types"
               className="text-sm font-medium text-subtle hover:text-emphasis transition-colors"
             >
               ← Back to Cal
