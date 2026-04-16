@@ -106,21 +106,23 @@ export async function POST(req: NextRequest) {
       endTime,
       durationMinutes: booking.eventType.durationMinutes,
       notes,
-    }).catch(console.error);
+    }).catch((err) => console.error("[EMAIL ERROR] Booker confirmation failed:", err?.message ?? err));
 
     // Send host notification email
-    sendHostNotification({
-      hostName: eventType.user.name,
-      hostEmail: eventType.user.email,
-      bookerName,
-      bookerEmail,
-      eventTitle: booking.eventType.title,
-      date,
-      startTime,
-      endTime,
-      durationMinutes: booking.eventType.durationMinutes,
-      notes,
-    }).catch(console.error);
+    if (eventType.user.email && eventType.user.email !== "demo@cal.app") {
+      sendHostNotification({
+        hostName: eventType.user.name,
+        hostEmail: eventType.user.email,
+        bookerName,
+        bookerEmail,
+        eventTitle: booking.eventType.title,
+        date,
+        startTime,
+        endTime,
+        durationMinutes: booking.eventType.durationMinutes,
+        notes,
+      }).catch((err) => console.error("[EMAIL ERROR] Host notification failed:", err?.message ?? err));
+    }
 
     return NextResponse.json(booking, { status: 201 });
   } catch {
