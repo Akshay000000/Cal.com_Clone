@@ -100,10 +100,10 @@ export default function BookingForm({
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </button>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-xs font-semibold text-white mb-3">
-          A
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#111111] text-xs font-semibold text-white mb-3">
+          D
         </div>
-        <p className="text-xs text-muted">Akshay</p>
+        <p className="text-xs text-muted">Demo User</p>
         <h2 className="mt-0.5 text-base font-semibold text-emphasis">{eventTitle}</h2>
         <div className="mt-4 space-y-2.5">
           <p className="flex items-center gap-2 text-sm text-subtle">

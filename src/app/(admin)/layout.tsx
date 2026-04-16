@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/admin/Sidebar";
 import { Menu, X, Clock, Link2, CalendarDays, Settings, Users, Grid3X3, GitBranch, Zap, BarChart3, ExternalLink, Copy, Gift, Search } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 const navItems = [
   { href: "/event-types", label: "Event types", icon: Link2 },
@@ -27,6 +28,12 @@ const bottomLinks = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { user, isSignedIn } = useUser();
+
+  const displayName = isSignedIn
+    ? (user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User")
+    : "Demo User";
+  const displayInitial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-[#111111]">
@@ -44,10 +51,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Menu className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[8px] font-bold text-white">
-            A
+          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[10px] font-bold text-white">
+            {displayInitial}
           </div>
-          <span className="text-[14px] font-semibold text-white">Akshay</span>
+          <span className="text-[14px] font-semibold text-white">{displayName}</span>
         </div>
       </div>
 
@@ -62,10 +69,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Drawer header */}
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[10px] font-bold text-white">
-                  A
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[12px] font-bold text-white">
+                  {displayInitial}
                 </div>
-                <span className="text-[14px] font-semibold text-white">Akshay</span>
+                <span className="text-[14px] font-semibold text-white">{displayName}</span>
               </div>
               <button
                 onClick={() => setMobileOpen(false)}

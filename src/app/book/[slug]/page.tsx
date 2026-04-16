@@ -204,10 +204,10 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
             <div className="flex flex-col md:flex-row">
               {/* Left: event info */}
               <div className="border-b md:border-b-0 md:border-r border-default p-6 md:w-64 flex-shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white mb-3">
-                  A
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111111] text-sm font-semibold text-white mb-3">
+                  D
                 </div>
-                <p className="text-xs text-muted">Akshay</p>
+                <p className="text-xs text-muted">Demo User</p>
                 <h1 className="mt-0.5 text-xl font-bold text-emphasis">{eventType.title}</h1>
                 {eventType.description && (
                   <p className="mt-2 text-sm text-subtle leading-relaxed">
