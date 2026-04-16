@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Clock, ExternalLink, Copy, MoreHorizontal, Pencil, Trash2, Link2, Search } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 interface EventType {
   id: number;
@@ -20,6 +21,18 @@ export default function EventTypesPage() {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const { isSignedIn, isLoaded } = useUser();
+  const [authToast, setAuthToast] = useState(false);
+
+  const requireAuth = (e?: React.MouseEvent) => {
+    if (isLoaded && !isSignedIn) {
+      if (e) e.preventDefault();
+      setAuthToast(true);
+      setTimeout(() => setAuthToast(false), 3000);
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     fetch("/api/event-types")
@@ -29,6 +42,7 @@ export default function EventTypesPage() {
   }, []);
 
   const handleDelete = async (id: number) => {
+    if (!requireAuth()) return;
     if (!confirm("Are you sure you want to delete this event type?")) return;
     await fetch(`/api/event-types/${id}`, { method: "DELETE" });
     setEventTypes((prev) => prev.filter((e) => e.id !== id));
@@ -36,6 +50,7 @@ export default function EventTypesPage() {
   };
 
   const handleToggle = async (id: number, currentActive: boolean) => {
+    if (!requireAuth()) return;
     const res = await fetch(`/api/event-types/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -82,6 +97,7 @@ export default function EventTypesPage() {
           </div>
           <Link
             href="/event-types/new"
+            onClick={requireAuth}
             className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black hover:bg-gray-200 transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" /> New
@@ -107,7 +123,7 @@ export default function EventTypesPage() {
               : "Create your first event type to start accepting bookings."}
           </p>
           {!search && (
-            <Link href="/event-types/new" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black hover:bg-gray-200 transition-colors">
+            <Link href="/event-types/new" onClick={requireAuth} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-black hover:bg-gray-200 transition-colors">
               <Plus className="h-4 w-4" /> New event type
             </Link>
           )}
@@ -125,6 +141,7 @@ export default function EventTypesPage() {
                   <div className="flex items-center gap-2 flex-wrap mb-1.5">
                     <Link
                       href={`/event-types/${ev.id}/edit`}
+                      onClick={requireAuth}
                       className="text-[14px] font-bold text-white hover:underline underline-offset-2 truncate"
                     >
                       {ev.title}
@@ -170,6 +187,7 @@ export default function EventTypesPage() {
                     <Link
                       href={`/book/${ev.slug}`}
                       target="_blank"
+                      onClick={requireAuth}
                       className="rounded-md border border-[#2c2c2c] p-2 text-[#a1a1aa] hover:text-white hover:border-[#444] hover:bg-[#1C1C1C] transition-colors"
                       title="Preview"
                     >
@@ -202,7 +220,10 @@ export default function EventTypesPage() {
                             <Link
                               href={`/event-types/${ev.id}/edit`}
                               className="flex items-center gap-2 px-3 py-2 text-[13px] text-white hover:bg-white/[0.04] transition-colors"
-                              onClick={() => setMenuOpen(null)}
+                              onClick={(e) => {
+                                setMenuOpen(null);
+                                requireAuth(e);
+                              }}
                             >
                               <Pencil className="h-3.5 w-3.5" /> Edit
                             </Link>
@@ -228,6 +249,13 @@ export default function EventTypesPage() {
       {copiedId && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-[#111827] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-2">
           Link copied to clipboard!
+        </div>
+      )}
+
+      {/* Auth toast */}
+      {authToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-lg border border-red-900/50 bg-[#7f1d1d] px-4 py-2.5 text-[13px] font-medium text-white shadow-lg animate-in fade-in slide-in-from-bottom-2">
+          Please sign in to use this feature.
         </div>
       )}
     </div>
