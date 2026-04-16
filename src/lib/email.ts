@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 function fmtDate(s: string) {
   return new Date(s + "T00:00:00").toLocaleDateString("en-US", {
@@ -11,20 +11,13 @@ function fmtTime(t: string) {
   return `${h === 0 ? 12 : h > 12 ? h - 12 : h}:${m.toString().padStart(2, "0")} ${p}`;
 }
 
-function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  if (!host) return null;
-  return nodemailer.createTransport({
-    host,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      : undefined,
-  });
+function getResend(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
 }
 
-const FROM = process.env.SMTP_FROM || "Cal <noreply@cal.app>";
+const FROM = process.env.RESEND_FROM || "Cal Clone <onboarding@resend.dev>";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 interface BookingEmailData {
@@ -41,7 +34,7 @@ interface BookingEmailData {
 }
 
 export async function sendBookingConfirmation(data: BookingEmailData) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -65,21 +58,22 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Booking confirmation for ${data.bookerEmail}:\n  Event: ${data.eventTitle}\n  Date: ${fmtDate(data.date)} ${fmtTime(data.startTime)}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.bookerEmail,
     subject: `Confirmed: ${data.eventTitle} on ${fmtDate(data.date)}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Booking confirmation:", error);
 }
 
 export async function sendCancellationEmail(data: BookingEmailData) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -100,21 +94,22 @@ export async function sendCancellationEmail(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Cancellation for ${data.bookerEmail}: ${data.eventTitle} on ${fmtDate(data.date)}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.bookerEmail,
     subject: `Cancelled: ${data.eventTitle} on ${fmtDate(data.date)}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Cancellation:", error);
 }
 
 export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: string; oldStartTime: string }) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -141,21 +136,22 @@ export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: st
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Reschedule for ${data.bookerEmail}: ${data.eventTitle} moved to ${fmtDate(data.date)} ${fmtTime(data.startTime)}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.bookerEmail,
     subject: `Rescheduled: ${data.eventTitle} → ${fmtDate(data.date)}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Reschedule:", error);
 }
 
 export async function sendHostNotification(data: BookingEmailData) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -175,22 +171,23 @@ export async function sendHostNotification(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Host notification to ${data.hostEmail}: ${data.bookerName} booked ${data.eventTitle}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `New Event: ${data.eventTitle} with ${data.bookerName}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Host notification:", error);
 }
 
 export async function sendHostCancellationNotification(data: BookingEmailData) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -211,24 +208,25 @@ export async function sendHostCancellationNotification(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Host cancellation notice to ${data.hostEmail}: ${data.bookerName} cancelled ${data.eventTitle}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `Cancelled: ${data.eventTitle} with ${data.bookerName}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Host cancellation:", error);
 }
 
 export async function sendHostRescheduleNotification(
   data: BookingEmailData & { oldDate: string; oldStartTime: string }
 ) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -253,22 +251,23 @@ export async function sendHostRescheduleNotification(
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Host reschedule notice to ${data.hostEmail}: ${data.bookerName} rescheduled ${data.eventTitle} to ${fmtDate(data.date)}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `Rescheduled: ${data.eventTitle} with ${data.bookerName} → ${fmtDate(data.date)}`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Host reschedule:", error);
 }
 
 export async function sendReminderEmail(data: BookingEmailData, isHost: boolean = false) {
-  const transporter = getTransporter();
+  const resend = getResend();
   const recipientEmail = isHost ? data.hostEmail! : data.bookerEmail;
   const recipientName = isHost ? data.hostName : data.bookerName;
   const otherPersonName = isHost ? data.bookerName : data.hostName || "your guest";
@@ -288,15 +287,16 @@ export async function sendReminderEmail(data: BookingEmailData, isHost: boolean 
       </div>
     </div>`;
 
-  if (!transporter) {
+  if (!resend) {
     console.log(`[EMAIL] Reminder to ${recipientEmail} for ${data.eventTitle}`);
     return;
   }
 
-  await transporter.sendMail({
+  const { error } = await resend.emails.send({
     from: FROM,
     to: recipientEmail,
     subject: `Reminder: ${data.eventTitle} is coming up`,
     html,
   });
+  if (error) console.error("[RESEND ERROR] Reminder:", error);
 }
