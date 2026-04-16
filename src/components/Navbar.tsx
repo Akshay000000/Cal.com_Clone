@@ -197,7 +197,7 @@ export default function Navbar() {
               Sign in
             </Link>
             <Link
-              href="/sign-up"
+              href="/event-types"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#1a1a1a] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-black transition-colors"
             >
               Get started <ChevronRight className="h-4 w-4 opacity-70" />

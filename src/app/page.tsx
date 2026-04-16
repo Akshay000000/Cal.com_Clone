@@ -289,7 +289,7 @@ export default function LandingPage() {
             {/* CTA buttons */}
             <div className="flex items-center gap-3">
               <Link
-                href="/sign-up"
+                href="/event-types"
                 className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1a1a1a] px-6 py-3 text-[15px] font-semibold text-white hover:bg-black transition-all shadow-md hover:shadow-lg"
               >
                 Get started <ChevronRight className="h-4 w-4 opacity-80" />
