@@ -36,7 +36,7 @@ function getTransporter() {
 }
 
 const FROM = process.env.SMTP_FROM || "Cal <noreply@cal.app>";
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://akshaycal.vercel.app";
 
 interface BookingEmailData {
   bookerName: string;
