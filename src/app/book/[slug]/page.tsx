@@ -229,7 +229,7 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
                       <ChevronDown className="h-3 w-3 text-muted" />
                     </button>
                     {showTzPicker && (
-                      <div className="absolute left-0 top-full mt-1 z-50 w-72 max-h-60 overflow-y-auto rounded-lg border border-default bg-white shadow-lg">
+                      <div className="absolute left-0 top-full mt-1 z-50 w-[calc(100vw-4rem)] sm:w-72 max-h-60 overflow-y-auto rounded-lg border border-default bg-white shadow-lg">
                         {timezoneList.map((tz) => (
                           <button
                             key={tz}
@@ -268,7 +268,7 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
                 </div>
 
                 {selectedDate && (
-                  <div className="border-t md:border-t-0 md:border-l border-default p-6 md:w-56">
+                  <div className="border-t md:border-t-0 md:border-l border-default p-4 sm:p-6 md:w-56 max-h-[50vh] md:max-h-none overflow-y-auto">
                     <TimeSlots
                       slots={slots}
                       loading={slotsLoading}
