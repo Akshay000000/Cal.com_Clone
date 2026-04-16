@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get("slug");
     const date = searchParams.get("date");
+    const timezone = searchParams.get("timezone") || undefined;
 
     if (!slug || !date)
       return NextResponse.json({ error: "slug and date are required" }, { status: 400 });
@@ -36,7 +37,8 @@ export async function GET(req: NextRequest) {
       eventType.durationMinutes,
       window,
       existingBookings,
-      eventType.bufferMinutes  // pass buffer time
+      eventType.bufferMinutes,
+      timezone
     );
 
     return NextResponse.json({

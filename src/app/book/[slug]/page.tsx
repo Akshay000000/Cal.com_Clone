@@ -1,12 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Globe, CalendarDays, Calendar } from "lucide-react";
+import { Clock, Globe, CalendarDays, Calendar, ChevronDown } from "lucide-react";
 import CalendarPicker from "@/components/booking/CalendarPicker";
 import TimeSlots from "@/components/booking/TimeSlots";
 import BookingForm from "@/components/booking/BookingForm";
 import Link from "next/link";
+
+const COMMON_TIMEZONES = [
+  "Asia/Kolkata",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Sao_Paulo",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Moscow",
+  "Asia/Dubai",
+  "Asia/Shanghai",
+  "Asia/Tokyo",
+  "Asia/Singapore",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+  "UTC",
+];
+
+function formatTzLabel(tz: string): string {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      timeZoneName: "shortOffset",
+    });
+    const parts = formatter.formatToParts(now);
+    const offset = parts.find((p) => p.type === "timeZoneName")?.value || "";
+    return `${tz.replace(/_/g, " ")} (${offset})`;
+  } catch {
+    return tz;
+  }
+}
 
 interface BookingQuestion {
   id: number;
@@ -39,6 +74,18 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlotT | null>(null);
   const [step, setStep] = useState<Step>("select-date");
+  const [timezone, setTimezone] = useState(() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone; }
+    catch { return "Asia/Kolkata"; }
+  });
+  const [showTzPicker, setShowTzPicker] = useState(false);
+
+  // Build full list: common + browser tz (deduplicated)
+  const timezoneList = useMemo(() => {
+    const set = new Set(COMMON_TIMEZONES);
+    set.add(timezone);
+    return Array.from(set).sort();
+  }, [timezone]);
 
   useEffect(() => {
     fetch(`/api/event-types/public/${slug}`)
@@ -55,11 +102,11 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
     if (!selectedDate || !slug) return;
     setSlotsLoading(true);
     setSelectedSlot(null);
-    fetch(`/api/slots?slug=${slug}&date=${selectedDate}`)
+    fetch(`/api/slots?slug=${slug}&date=${selectedDate}&timezone=${encodeURIComponent(timezone)}`)
       .then((r) => r.json())
       .then((d) => { setSlots(d.slots || []); setSlotsLoading(false); })
       .catch(() => { setSlots([]); setSlotsLoading(false); });
-  }, [selectedDate, slug]);
+  }, [selectedDate, slug, timezone]);
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
@@ -172,10 +219,33 @@ export default function BookingPage({ params }: { params: { slug: string } }) {
                     <Clock className="h-4 w-4 text-muted" />
                     {eventType.durationMinutes} min
                   </p>
-                  <p className="flex items-center gap-2 text-sm text-subtle">
-                    <Globe className="h-4 w-4 text-muted" />
-                    Asia / Kolkata
-                  </p>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTzPicker(!showTzPicker)}
+                      className="flex items-center gap-2 text-sm text-subtle hover:text-emphasis transition-colors"
+                    >
+                      <Globe className="h-4 w-4 text-muted" />
+                      <span>{timezone.replace(/_/g, " ")}</span>
+                      <ChevronDown className="h-3 w-3 text-muted" />
+                    </button>
+                    {showTzPicker && (
+                      <div className="absolute left-0 top-full mt-1 z-50 w-72 max-h-60 overflow-y-auto rounded-lg border border-default bg-white shadow-lg">
+                        {timezoneList.map((tz) => (
+                          <button
+                            key={tz}
+                            onClick={() => { setTimezone(tz); setShowTzPicker(false); }}
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                              tz === timezone
+                                ? "bg-emphasis text-white"
+                                : "text-default hover:bg-muted"
+                            }`}
+                          >
+                            {formatTzLabel(tz)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {selectedDate && (
                     <p className="flex items-center gap-2 text-sm text-subtle">
                       <Calendar className="h-4 w-4 text-muted" />

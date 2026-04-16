@@ -82,19 +82,33 @@ export function getAvailableSlots(
   durationMinutes: number,
   window: AvailabilityWindow | null,
   existingBookings: { startTime: string; endTime: string }[],
-  bufferMinutes: number = 0
+  bufferMinutes: number = 0,
+  timezone?: string
 ): TimeSlot[] {
   if (!window) return [];
   const all = generateSlots(window, durationMinutes);
-  return all.filter(
+  const filtered = all.filter(
     (slot) =>
       !existingBookings.some((b) => {
-        // Extend the booked block by bufferMinutes so that the buffer
-        // period after a meeting is also treated as unavailable.
         const bufferedEnd = minutesToTime(
           timeToMinutes(b.endTime) + bufferMinutes
         );
         return hasOverlap(slot, { startTime: b.startTime, endTime: bufferedEnd });
       })
   );
+
+  // Filter out past slots if the date is today in the given timezone
+  if (timezone) {
+    const nowInTz = new Date(
+      new Date().toLocaleString("en-US", { timeZone: timezone })
+    );
+    const todayInTz = `${nowInTz.getFullYear()}-${String(nowInTz.getMonth() + 1).padStart(2, "0")}-${String(nowInTz.getDate()).padStart(2, "0")}`;
+
+    if (date === todayInTz) {
+      const nowMinutes = nowInTz.getHours() * 60 + nowInTz.getMinutes();
+      return filtered.filter((slot) => timeToMinutes(slot.startTime) > nowMinutes);
+    }
+  }
+
+  return filtered;
 }
