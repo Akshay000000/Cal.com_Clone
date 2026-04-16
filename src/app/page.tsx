@@ -277,7 +277,7 @@ export default function LandingPage() {
             </Link>
 
             {/* Heading */}
-            <h1 className="text-[48px] sm:text-[60px] font-black text-[#1a1a1a] leading-[1.05] tracking-[-0.03em] mb-6 drop-shadow-sm">
+            <h1 className="text-[36px] min-[400px]:text-[48px] sm:text-[60px] font-black text-[#1a1a1a] leading-[1.05] tracking-[-0.03em] mb-6 drop-shadow-sm break-words">
               With us, appointment<br />scheduling is easy
             </h1>
 
@@ -400,7 +400,7 @@ export default function LandingPage() {
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e0e0e0] bg-white px-4 py-2 text-[13px] font-medium text-[#292929] shadow-sm">
             How it works
           </div>
-          <h2 className="text-[36px] sm:text-[44px] font-extrabold text-[#292929] leading-[1.08] tracking-[-0.03em] mb-3">
+          <h2 className="text-[28px] sm:text-[36px] md:text-[44px] font-extrabold text-[#292929] leading-[1.08] tracking-[-0.03em] mb-3 break-words hyphen-auto">
             With us, appointment
             <br className="hidden sm:block" />
             scheduling is easy
