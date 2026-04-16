@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const DEFAULT_USER_ID = 1;
+import { getAuthSession } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const schedules = await prisma.availabilitySchedule.findMany({
-      where: { userId: DEFAULT_USER_ID },
+      where: { userId },
       include: {
         rules: { orderBy: { dayOfWeek: "asc" } },
         dateOverrides: { orderBy: { date: "asc" } },
@@ -21,12 +24,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const { name, timezone } = await req.json();
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
 
     const schedule = await prisma.availabilitySchedule.create({
       data: {
-        userId: DEFAULT_USER_ID,
+        userId,
         name,
         timezone: timezone || "Asia/Kolkata",
         isDefault: false,

@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/auth";
 
-const DEFAULT_USER_ID = 1;
 type Params = { params: { id: string } };
 
 export async function PUT(req: NextRequest, { params }: Params) {
   const id = parseInt(params.id);
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const { name, timezone, rules, setDefault } = await req.json();
 
     if (setDefault) {
       // Unset all other defaults for this user first
       await prisma.availabilitySchedule.updateMany({
-        where: { userId: DEFAULT_USER_ID },
+        where: { userId },
         data: { isDefault: false },
       });
       await prisma.availabilitySchedule.update({
@@ -53,8 +57,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const id = parseInt(params.id);
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const schedule = await prisma.availabilitySchedule.findUnique({ where: { id } });
-    if (schedule?.isDefault)
+    if (!schedule || schedule.userId !== userId) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    
+    if (schedule.isDefault)
       return NextResponse.json({ error: "Cannot delete the default schedule" }, { status: 400 });
     await prisma.availabilitySchedule.delete({ where: { id } });
     return NextResponse.json({ success: true });

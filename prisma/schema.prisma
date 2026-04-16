@@ -18,6 +18,7 @@ model User {
   name      String
   email     String   @unique
   timezone  String   @default("Asia/Kolkata")
+  password  String?
   createdAt DateTime @default(now()) @map("created_at")
 
   eventTypes            EventType[]
@@ -124,6 +125,7 @@ model Booking {
   status           BookingStatus @default(confirmed)
   notes            String?
   rescheduledFromId Int?         @map("rescheduled_from_id")
+  reminderSent     Boolean       @default(false) @map("reminder_sent")
   createdAt        DateTime      @default(now()) @map("created_at")
 
   eventType         EventType      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)

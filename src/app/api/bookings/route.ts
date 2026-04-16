@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasOverlap } from "@/lib/slots";
-import { sendBookingConfirmation } from "@/lib/email";
-
-const DEFAULT_USER_ID = 1;
+import { sendBookingConfirmation, sendHostNotification } from "@/lib/email";
+import { getAuthSession } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const timeframe = searchParams.get("timeframe");
     const today = new Date().toISOString().split("T")[0];
 
-    const where: Record<string, unknown> = { eventType: { userId: DEFAULT_USER_ID } };
+    const where: Record<string, unknown> = { eventType: { userId } };
     if (status) where.status = status;
     if (timeframe === "upcoming") where.date = { gte: today };
     else if (timeframe === "past") where.date = { lt: today };
@@ -47,7 +50,10 @@ export async function POST(req: NextRequest) {
     if (!eventTypeId || !bookerName || !bookerEmail || !date || !startTime || !endTime)
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
 
-    const eventType = await prisma.eventType.findUnique({ where: { id: eventTypeId } });
+    const eventType = await prisma.eventType.findUnique({ 
+      where: { id: eventTypeId },
+      include: { user: true }
+    });
     if (!eventType || !eventType.isActive)
       return NextResponse.json({ error: "Event type not found" }, { status: 404 });
 
@@ -92,6 +98,20 @@ export async function POST(req: NextRequest) {
 
     // Send confirmation email (non-blocking)
     sendBookingConfirmation({
+      bookerName,
+      bookerEmail,
+      eventTitle: booking.eventType.title,
+      date,
+      startTime,
+      endTime,
+      durationMinutes: booking.eventType.durationMinutes,
+      notes,
+    }).catch(console.error);
+
+    // Send host notification email
+    sendHostNotification({
+      hostName: eventType.user.name,
+      hostEmail: eventType.user.email,
       bookerName,
       bookerEmail,
       eventTitle: booking.eventType.title,

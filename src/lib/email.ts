@@ -36,6 +36,7 @@ interface BookingEmailData {
   endTime: string;
   durationMinutes: number;
   hostName?: string;
+  hostEmail?: string;
   notes?: string | null;
 }
 
@@ -44,7 +45,7 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
-        <h1 style="color:#fff;margin:0;font-size:18px;font-weight:700">📅 Cal</h1>
+        <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px">CAL CLONEEE</h1>
       </div>
       <div style="padding:32px">
         <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:24px">
@@ -82,7 +83,7 @@ export async function sendCancellationEmail(data: BookingEmailData) {
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
-        <h1 style="color:#fff;margin:0;font-size:18px;font-weight:700">📅 Cal</h1>
+        <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px">CAL CLONEEE</h1>
       </div>
       <div style="padding:32px">
         <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin-bottom:24px">
@@ -117,7 +118,7 @@ export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: st
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
-        <h1 style="color:#fff;margin:0;font-size:18px;font-weight:700">📅 Cal</h1>
+        <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px">CAL CLONEEE</h1>
       </div>
       <div style="padding:32px">
         <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px">
@@ -149,6 +150,75 @@ export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: st
     from: FROM,
     to: data.bookerEmail,
     subject: `Rescheduled: ${data.eventTitle} → ${fmtDate(data.date)}`,
+    html,
+  });
+}
+
+export async function sendHostNotification(data: BookingEmailData) {
+  const transporter = getTransporter();
+  const html = `
+    <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
+      <div style="background:#111827;padding:24px 32px">
+        <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px">CAL CLONEEE</h1>
+      </div>
+      <div style="padding:32px">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:24px">
+          <p style="margin:0;color:#166534;font-weight:600;font-size:15px">✓ New Booking Received</p>
+        </div>
+        <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 4px">${data.eventTitle}</h2>
+        <p style="color:#6b7280;margin:0 0 24px;font-size:14px">Booked by ${data.bookerName} (${data.bookerEmail})</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;width:100px">Date</td><td style="padding:8px 0;color:#111827;font-size:14px;font-weight:500">${fmtDate(data.date)}</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280;font-size:13px">Time</td><td style="padding:8px 0;color:#111827;font-size:14px;font-weight:500">${fmtTime(data.startTime)} – ${fmtTime(data.endTime)} (${data.durationMinutes} min)</td></tr>
+          ${data.notes ? `<tr><td style="padding:8px 0;color:#6b7280;font-size:13px;vertical-align:top">Notes</td><td style="padding:8px 0;color:#111827;font-size:14px">${data.notes}</td></tr>` : ""}
+        </table>
+      </div>
+    </div>`;
+
+  if (!transporter) {
+    console.log(`[EMAIL] Host notification to ${data.hostEmail}: ${data.bookerName} booked ${data.eventTitle}`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from: FROM,
+    to: data.hostEmail!,
+    replyTo: data.bookerEmail,
+    subject: `New Event: ${data.eventTitle} with ${data.bookerName}`,
+    html,
+  });
+}
+
+export async function sendReminderEmail(data: BookingEmailData, isHost: boolean = false) {
+  const transporter = getTransporter();
+  const recipientEmail = isHost ? data.hostEmail! : data.bookerEmail;
+  const recipientName = isHost ? data.hostName : data.bookerName;
+  const otherPersonName = isHost ? data.bookerName : data.hostName || "your guest";
+  
+  const html = `
+    <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
+      <div style="background:#111827;padding:24px 32px">
+        <h1 style="color:#fff;margin:0;font-size:24px;font-weight:800;letter-spacing:0.5px">CAL CLONEEE REMINDER</h1>
+      </div>
+      <div style="padding:32px">
+        <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 4px">Upcoming: ${data.eventTitle}</h2>
+        <p style="color:#6b7280;margin:0 0 24px;font-size:14px">Hi ${recipientName}, you have an event with ${otherPersonName} soon.</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:8px 0;color:#6b7280;font-size:13px;width:100px">Date</td><td style="padding:8px 0;color:#111827;font-size:14px;font-weight:500">${fmtDate(data.date)}</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280;font-size:13px">Time</td><td style="padding:8px 0;color:#111827;font-size:14px;font-weight:500">${fmtTime(data.startTime)} – ${fmtTime(data.endTime)}</td></tr>
+        </table>
+      </div>
+    </div>`;
+
+  if (!transporter) {
+    console.log(`[EMAIL] Reminder to ${recipientEmail} for ${data.eventTitle}`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from: FROM,
+    to: recipientEmail,
+    subject: `Reminder: ${data.eventTitle} is coming up`,
     html,
   });
 }

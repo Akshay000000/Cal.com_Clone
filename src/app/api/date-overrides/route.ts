@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const DEFAULT_USER_ID = 1;
+import { getAuthSession } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const schedule = await prisma.availabilitySchedule.findFirst({
-      where: { userId: DEFAULT_USER_ID, isDefault: true },
+      where: { userId, isDefault: true },
       include: { dateOverrides: { orderBy: { date: "asc" } } },
     });
     return NextResponse.json(schedule?.dateOverrides || []);
@@ -17,11 +20,15 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const { date, isBlocked, startTime, endTime } = await req.json();
     if (!date) return NextResponse.json({ error: "date is required" }, { status: 400 });
 
     const schedule = await prisma.availabilitySchedule.findFirst({
-      where: { userId: DEFAULT_USER_ID, isDefault: true },
+      where: { userId, isDefault: true },
     });
     if (!schedule) return NextResponse.json({ error: "No schedule found" }, { status: 404 });
 

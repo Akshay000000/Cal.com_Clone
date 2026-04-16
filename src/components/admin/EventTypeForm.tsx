@@ -110,34 +110,36 @@ export default function EventTypeForm({ eventTypeId }: Props) {
   if (loading)
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-emphasis" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#2c2c2c] border-t-white" />
       </div>
     );
 
   return (
     <div>
-      <div className="mb-6">
-        <Link
-          href="/event-types"
-          className="inline-flex items-center gap-1.5 text-sm text-subtle hover:text-emphasis transition-colors mb-4"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to event types
-        </Link>
-        <h1 className="page-title">
-          {isEditing ? "Edit event type" : "New event type"}
-        </h1>
-        <p className="page-subtitle">
-          {isEditing
-            ? "Update this event type's details."
-            : "Create a new event type for people to book."}
-        </p>
+      <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <Link
+            href="/event-types"
+            className="inline-flex items-center gap-1.5 text-[13px] text-gray-400 font-medium hover:text-white transition-colors mb-3"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to event types
+          </Link>
+          <h1 className="text-xl font-semibold text-white tracking-tight">
+            {isEditing ? "Edit event type" : "New event type"}
+          </h1>
+          <p className="mt-0.5 text-[14px] text-gray-400">
+            {isEditing
+              ? "Update this event type's details."
+              : "Create a new event type for people to book."}
+          </p>
+        </div>
       </div>
 
-      <div className="card max-w-2xl">
+      <div className="rounded-[8px] bg-[#111111] border border-[#2c2c2c] max-w-2xl overflow-hidden">
         <form onSubmit={handleSubmit}>
           {error && (
             <div className="px-6 pt-5">
-              <div className="rounded-md bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 text-[13px] text-red-500 font-medium">
                 {error}
               </div>
             </div>
@@ -146,7 +148,7 @@ export default function EventTypeForm({ eventTypeId }: Props) {
           {/* Basic Info */}
           <div className="space-y-5 px-6 py-5">
             <div>
-              <label className="block text-sm font-medium text-emphasis mb-1.5">
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5">
                 Title
               </label>
               <input
@@ -155,16 +157,16 @@ export default function EventTypeForm({ eventTypeId }: Props) {
                 value={form.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Quick Chat"
-                className="input-field"
+                className="block w-full rounded-md border border-[#2c2c2c] bg-transparent px-3 py-2 text-[13px] text-white placeholder:text-gray-500 focus:border-gray-500 focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-emphasis mb-1.5">
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5">
                 URL slug
               </label>
-              <div className="flex items-center rounded-md border border-default bg-white focus-within:border-emphasis focus-within:ring-1 focus-within:ring-emphasis transition-colors overflow-hidden">
-                <span className="flex-shrink-0 bg-subtle px-3 py-2 text-sm text-muted border-r border-default select-none">
+              <div className="flex items-center rounded-md border border-[#2c2c2c] bg-transparent focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-colors overflow-hidden">
+                <span className="flex-shrink-0 bg-[#1a1a1a] px-3 py-2 text-[13px] text-gray-500 border-r border-[#2c2c2c] select-none font-medium">
                   /book/
                 </span>
                 <input
@@ -173,34 +175,34 @@ export default function EventTypeForm({ eventTypeId }: Props) {
                   value={form.slug}
                   onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
                   placeholder="quick-chat"
-                  className="flex-1 border-0 bg-transparent px-3 py-2 text-sm text-emphasis placeholder:text-muted focus:outline-none focus:ring-0"
+                  className="flex-1 border-0 bg-transparent px-3 py-2 text-[13px] text-white placeholder:text-gray-500 focus:outline-none focus:ring-0"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-emphasis mb-1.5">
+              <label className="block text-xs font-semibold text-gray-300 mb-1.5">
                 Description
-                <span className="ml-1 font-normal text-muted">(optional)</span>
+                <span className="ml-1 font-normal text-gray-500">(optional)</span>
               </label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="A quick chat to discuss anything."
                 rows={3}
-                className="input-field resize-none"
+                className="block w-full rounded-md border border-[#2c2c2c] bg-transparent px-3 py-2 text-[13px] text-white placeholder:text-gray-500 focus:border-gray-500 focus:outline-none transition-colors resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-emphasis mb-1.5">
+                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
                   Duration
                 </label>
                 <select
                   value={form.durationMinutes}
                   onChange={(e) => setForm((p) => ({ ...p, durationMinutes: e.target.value }))}
-                  className="input-field"
+                  className="block w-full rounded-md border border-[#2c2c2c] bg-[#111111] px-3 py-2 text-[13px] text-white focus:border-gray-500 focus:outline-none transition-colors"
                 >
                   {[15, 30, 45, 60, 90, 120].map((d) => (
                     <option key={d} value={d}>
@@ -210,13 +212,13 @@ export default function EventTypeForm({ eventTypeId }: Props) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-emphasis mb-1.5">
+                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
                   Buffer time
                 </label>
                 <select
                   value={form.bufferMinutes}
                   onChange={(e) => setForm((p) => ({ ...p, bufferMinutes: e.target.value }))}
-                  className="input-field"
+                  className="block w-full rounded-md border border-[#2c2c2c] bg-[#111111] px-3 py-2 text-[13px] text-white focus:border-gray-500 focus:outline-none transition-colors"
                 >
                   {[0, 5, 10, 15, 30, 45, 60].map((d) => (
                     <option key={d} value={d}>
@@ -224,7 +226,7 @@ export default function EventTypeForm({ eventTypeId }: Props) {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-xs text-gray-500 font-medium">
                   Buffer between consecutive bookings.
                 </p>
               </div>
@@ -232,30 +234,30 @@ export default function EventTypeForm({ eventTypeId }: Props) {
           </div>
 
           {/* Custom Questions */}
-          <div className="border-t border-default px-6 py-5">
+          <div className="border-t border-[#2c2c2c] px-6 py-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-medium text-emphasis">Custom questions</h3>
-                <p className="text-xs text-muted mt-0.5">
+                <h3 className="text-[14px] font-semibold text-white">Custom questions</h3>
+                <p className="text-xs text-gray-400 mt-0.5 font-medium">
                   Add questions to collect info from bookers.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={addQuestion}
-                className="btn-minimal text-xs"
+                className="inline-flex items-center gap-2 rounded-md border border-[#2c2c2c] bg-transparent px-3 py-1.5 text-xs font-semibold text-gray-300 transition-all hover:bg-[#1a1a1a] hover:text-white"
               >
                 <Plus className="h-3.5 w-3.5" /> Add question
               </button>
             </div>
 
             {questions.length === 0 ? (
-              <div className="rounded-md border border-dashed border-gray-300 py-8 text-center">
-                <p className="text-sm text-muted">No custom questions yet.</p>
+              <div className="rounded-md border border-dashed border-[#2c2c2c] py-8 text-center bg-[#141414]">
+                <p className="text-[13px] text-gray-500 font-medium">No custom questions yet.</p>
                 <button
                   type="button"
                   onClick={addQuestion}
-                  className="mt-2 text-xs font-medium text-emphasis hover:underline"
+                  className="mt-2 text-xs font-semibold text-gray-300 hover:text-white transition-colors"
                 >
                   + Add your first question
                 </button>
@@ -265,31 +267,31 @@ export default function EventTypeForm({ eventTypeId }: Props) {
                 {questions.map((q, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 rounded-md border border-default bg-subtle p-3"
+                    className="flex items-start gap-3 rounded-md border border-[#2c2c2c] bg-[#1a1a1a] p-3"
                   >
-                    <GripVertical className="h-4 w-4 mt-2 text-gray-300 flex-shrink-0 cursor-grab" />
+                    <GripVertical className="h-4 w-4 mt-2 text-gray-500 flex-shrink-0 cursor-grab" />
                     <div className="flex-1 space-y-2">
                       <input
                         type="text"
                         value={q.label}
                         onChange={(e) => updateQuestion(idx, "label", e.target.value)}
                         placeholder="e.g. What's the agenda for this meeting?"
-                        className="input-field text-sm"
+                        className="block w-full rounded-md border border-[#2c2c2c] bg-[#111111] px-3 py-2 text-[13px] text-white placeholder:text-gray-500 focus:border-gray-500 focus:outline-none transition-colors"
                       />
-                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <label className="inline-flex items-center gap-2 cursor-pointer pt-1">
                         <input
                           type="checkbox"
                           checked={q.required}
                           onChange={(e) => updateQuestion(idx, "required", e.target.checked)}
-                          className="h-3.5 w-3.5 rounded border-gray-300 text-emphasis focus:ring-emphasis"
+                          className="h-3.5 w-3.5 rounded border-[#2c2c2c] bg-transparent text-white focus:ring-gray-500 focus:ring-offset-0"
                         />
-                        <span className="text-xs text-subtle">Required</span>
+                        <span className="text-xs text-gray-400 font-medium">Required</span>
                       </label>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeQuestion(idx)}
-                      className="rounded p-1 text-gray-300 hover:text-red-500 transition-colors mt-1"
+                      className="rounded p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors mt-0.5"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -300,11 +302,11 @@ export default function EventTypeForm({ eventTypeId }: Props) {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-default px-6 py-4">
-            <Link href="/event-types" className="btn-secondary">
+          <div className="flex items-center justify-end gap-3 border-t border-[#2c2c2c] bg-[#111111] px-6 py-4 rounded-b-[8px]">
+            <Link href="/event-types" className="inline-flex items-center justify-center gap-2 rounded-md border border-[#2c2c2c] bg-transparent px-4 py-2 text-[13px] font-semibold text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-all">
               Cancel
             </Link>
-            <button type="submit" disabled={saving} className="btn-primary">
+            <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-[13px] font-semibold text-black hover:bg-gray-200 transition-all">
               {saving
                 ? "Saving..."
                 : isEditing

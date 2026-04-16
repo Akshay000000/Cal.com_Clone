@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
-const DEFAULT_USER_ID = 1;
+import { getAuthSession } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const eventTypes = await prisma.eventType.findMany({
-      where: { userId: DEFAULT_USER_ID },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       include: {
         _count: { select: { bookings: { where: { status: "confirmed" } } } },
@@ -22,6 +25,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getAuthSession();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = Number(session.user.id);
+
     const { title, slug, description, durationMinutes, bufferMinutes, questions } =
       await req.json();
 
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const eventType = await prisma.eventType.create({
       data: {
-        userId: DEFAULT_USER_ID,
+        userId,
         title,
         slug,
         description: description || null,
