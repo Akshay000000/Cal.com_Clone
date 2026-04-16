@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 function fmtDate(s: string) {
   return new Date(s + "T00:00:00").toLocaleDateString("en-US", {
@@ -11,17 +11,31 @@ function fmtTime(t: string) {
   return `${h === 0 ? 12 : h > 12 ? h - 12 : h}:${m.toString().padStart(2, "0")} ${p}`;
 }
 
-function getResend(): Resend | null {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("[EMAIL] RESEND_API_KEY is not set — emails will only be logged, not sent");
+function getTransporter() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    console.warn("[EMAIL] SMTP not configured — missing SMTP_HOST, SMTP_USER, or SMTP_PASS");
     return null;
   }
-  console.log("[EMAIL] Resend client initialized (key present)");
-  return new Resend(apiKey);
+
+  console.log(`[EMAIL] Creating SMTP transporter → ${host}:${process.env.SMTP_PORT || "587"}`);
+
+  return nodemailer.createTransport({
+    host,
+    port: parseInt(process.env.SMTP_PORT || "587"),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: { user, pass },
+    // Increase timeout for serverless environments
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
 }
 
-const FROM = process.env.RESEND_FROM || "Cal Clone <onboarding@resend.dev>";
+const FROM = process.env.SMTP_FROM || "Cal <noreply@cal.app>";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 interface BookingEmailData {
@@ -37,8 +51,25 @@ interface BookingEmailData {
   notes?: string | null;
 }
 
+async function safeSend(
+  mailOptions: Parameters<ReturnType<typeof nodemailer.createTransport>["sendMail"]>[0],
+  label: string
+) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.log(`[EMAIL][${label}] Skipped (no SMTP config) — to: ${mailOptions.to}`);
+    return;
+  }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[EMAIL][${label}] ✓ Sent to ${mailOptions.to} — messageId: ${info.messageId}`);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[EMAIL][${label}] ✕ FAILED to ${mailOptions.to} — ${msg}`);
+  }
+}
+
 export async function sendBookingConfirmation(data: BookingEmailData) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -62,22 +93,15 @@ export async function sendBookingConfirmation(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Booking confirmation for ${data.bookerEmail}:\n  Event: ${data.eventTitle}\n  Date: ${fmtDate(data.date)} ${fmtTime(data.startTime)}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.bookerEmail,
     subject: `Confirmed: ${data.eventTitle} on ${fmtDate(data.date)}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Booking confirmation:", error);
+  }, "BookingConfirmation");
 }
 
 export async function sendCancellationEmail(data: BookingEmailData) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -98,22 +122,15 @@ export async function sendCancellationEmail(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Cancellation for ${data.bookerEmail}: ${data.eventTitle} on ${fmtDate(data.date)}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.bookerEmail,
     subject: `Cancelled: ${data.eventTitle} on ${fmtDate(data.date)}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Cancellation:", error);
+  }, "Cancellation");
 }
 
 export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: string; oldStartTime: string }) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -140,22 +157,15 @@ export async function sendRescheduleEmail(data: BookingEmailData & { oldDate: st
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Reschedule for ${data.bookerEmail}: ${data.eventTitle} moved to ${fmtDate(data.date)} ${fmtTime(data.startTime)}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.bookerEmail,
     subject: `Rescheduled: ${data.eventTitle} → ${fmtDate(data.date)}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Reschedule:", error);
+  }, "Reschedule");
 }
 
 export async function sendHostNotification(data: BookingEmailData) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -175,23 +185,16 @@ export async function sendHostNotification(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Host notification to ${data.hostEmail}: ${data.bookerName} booked ${data.eventTitle}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `New Event: ${data.eventTitle} with ${data.bookerName}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Host notification:", error);
+  }, "HostNotification");
 }
 
 export async function sendHostCancellationNotification(data: BookingEmailData) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -212,25 +215,18 @@ export async function sendHostCancellationNotification(data: BookingEmailData) {
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Host cancellation notice to ${data.hostEmail}: ${data.bookerName} cancelled ${data.eventTitle}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `Cancelled: ${data.eventTitle} with ${data.bookerName}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Host cancellation:", error);
+  }, "HostCancellation");
 }
 
 export async function sendHostRescheduleNotification(
   data: BookingEmailData & { oldDate: string; oldStartTime: string }
 ) {
-  const resend = getResend();
   const html = `
     <div style="font-family:Inter,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">
       <div style="background:#111827;padding:24px 32px">
@@ -255,23 +251,16 @@ export async function sendHostRescheduleNotification(
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Host reschedule notice to ${data.hostEmail}: ${data.bookerName} rescheduled ${data.eventTitle} to ${fmtDate(data.date)}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: data.hostEmail!,
     replyTo: data.bookerEmail,
     subject: `Rescheduled: ${data.eventTitle} with ${data.bookerName} → ${fmtDate(data.date)}`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Host reschedule:", error);
+  }, "HostReschedule");
 }
 
 export async function sendReminderEmail(data: BookingEmailData, isHost: boolean = false) {
-  const resend = getResend();
   const recipientEmail = isHost ? data.hostEmail! : data.bookerEmail;
   const recipientName = isHost ? data.hostName : data.bookerName;
   const otherPersonName = isHost ? data.bookerName : data.hostName || "your guest";
@@ -291,16 +280,10 @@ export async function sendReminderEmail(data: BookingEmailData, isHost: boolean 
       </div>
     </div>`;
 
-  if (!resend) {
-    console.log(`[EMAIL] Reminder to ${recipientEmail} for ${data.eventTitle}`);
-    return;
-  }
-
-  const { error } = await resend.emails.send({
+  await safeSend({
     from: FROM,
     to: recipientEmail,
     subject: `Reminder: ${data.eventTitle} is coming up`,
     html,
-  });
-  if (error) console.error("[RESEND ERROR] Reminder:", error);
+  }, isHost ? "HostReminder" : "BookerReminder");
 }
