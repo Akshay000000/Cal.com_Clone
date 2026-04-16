@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/admin/Sidebar";
-import { Menu, X, Clock, Link2, CalendarDays, Settings, Users, Grid3X3, GitBranch, Zap, BarChart3, ExternalLink, Copy, Gift, Search } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { Menu, X, Clock, Link2, CalendarDays, Settings, Users, Grid3X3, GitBranch, Zap, BarChart3, ExternalLink, Copy, Gift, Search, User, Moon, Map, HelpCircle, Download, LogOut, ChevronDown, ChevronRight } from "lucide-react";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 const navItems = [
   { href: "/event-types", label: "Event types", icon: Link2 },
@@ -27,8 +27,10 @@ const bottomLinks = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const pathname = usePathname();
   const { user, isSignedIn } = useUser();
+  const { signOut } = useClerk();
 
   const displayName = isSignedIn
     ? (user?.fullName || user?.emailAddresses?.[0]?.emailAddress || "User")
@@ -50,11 +52,61 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[10px] font-bold text-white">
+        <div 
+          onClick={() => setIsProfileOpen(!isProfileOpen)}
+          className="flex items-center gap-2 cursor-pointer relative"
+        >
+          <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-[10px] font-bold text-white relative">
             {displayInitial}
+            <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-[#111111] bg-[#10b981]"></div>
           </div>
           <span className="text-[14px] font-semibold text-white">{displayName}</span>
+          <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${isProfileOpen ? "rotate-180" : ""}`} />
+          
+          {/* Dropdown Menu */}
+          {isProfileOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setIsProfileOpen(false); }}></div>
+              <div className="absolute right-0 top-[40px] z-50 w-[220px] rounded-xl border border-[#2c2c2c] bg-[#1c1c1c] py-1.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150" onClick={(e) => e.stopPropagation()}>
+                <div className="px-1.5 py-1">
+                  <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <User className="h-4 w-4 text-gray-300" /> My profile
+                  </button>
+                  <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <Settings className="h-4 w-4 text-gray-300" /> My settings
+                  </button>
+                  <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <Moon className="h-4 w-4 text-gray-300" /> Out of office
+                  </button>
+                </div>
+                <div className="my-1 border-t border-[#2c2c2c]"></div>
+                <div className="px-1.5 py-1">
+                  <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <Map className="h-4 w-4 text-gray-300" /> Roadmap
+                  </button>
+                  <button className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <HelpCircle className="h-4 w-4 text-gray-300" /> Help
+                  </button>
+                  <button className="flex w-full justify-between items-center rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-2.5"><Download className="h-4 w-4 text-gray-300" /> Download app</div>
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+                <div className="my-1 border-t border-[#2c2c2c]"></div>
+                <div className="px-1.5 py-1">
+                  {isSignedIn ? (
+                  <button onClick={() => { setIsProfileOpen(false); signOut({ redirectUrl: '/' }); }} className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-[#f87171] hover:bg-red-500/10 transition-colors">
+                    <LogOut className="h-4 w-4" /> Sign out
+                  </button>
+                  ) : (
+                  <Link href="/sign-in" onClick={() => setIsProfileOpen(false)} className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-white hover:bg-white/10 transition-colors">
+                    <LogOut className="h-4 w-4 text-gray-300" /> Sign in
+                  </Link>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -69,8 +121,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Drawer header */}
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[12px] font-bold text-white">
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-[12px] font-bold text-white relative">
                   {displayInitial}
+                  <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-[#111111] bg-[#10b981]"></div>
                 </div>
                 <span className="text-[14px] font-semibold text-white">{displayName}</span>
               </div>
