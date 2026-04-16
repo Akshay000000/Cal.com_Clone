@@ -1,5 +1,8 @@
 # Cal.com Clone
 
+![Status](https://img.shields.io/badge/Status-Deployed_%E2%9C%85-brightgreen.svg)
+**🌍 Live Demo:** [akshaycal.vercel.app](https://akshaycal.vercel.app)
+
 A fully functional, modern, and high-performance clone of Cal.com built with **Next.js 14**, **Tailwind CSS**, **Prisma**, and **Clerk**. This application allows users to create configurable event types, manage their availability, and enable clients to smoothly book appointments across different timezones.
 
 ## ✨ Features
