@@ -13,7 +13,11 @@ function fmtTime(t: string) {
 
 function getResend(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.warn("[EMAIL] RESEND_API_KEY is not set — emails will only be logged, not sent");
+    return null;
+  }
+  console.log("[EMAIL] Resend client initialized (key present)");
   return new Resend(apiKey);
 }
 
