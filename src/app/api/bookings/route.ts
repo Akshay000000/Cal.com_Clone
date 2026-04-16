@@ -96,8 +96,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Send confirmation email (non-blocking)
-    sendBookingConfirmation({
+    // Send emails BEFORE returning response (Vercel kills pending promises after response)
+    const emailData = {
       bookerName,
       bookerEmail,
       eventTitle: booking.eventType.title,
@@ -106,23 +106,16 @@ export async function POST(req: NextRequest) {
       endTime,
       durationMinutes: booking.eventType.durationMinutes,
       notes,
-    }).catch((err) => console.error("[EMAIL ERROR] Booker confirmation failed:", err?.message ?? err));
+      hostName: eventType.user.name,
+      hostEmail: eventType.user.email,
+    };
 
-    // Send host notification email
+    // Send both emails in parallel, but await them
+    const emailPromises: Promise<void>[] = [sendBookingConfirmation(emailData)];
     if (eventType.user.email && eventType.user.email !== "demo@cal.app") {
-      sendHostNotification({
-        hostName: eventType.user.name,
-        hostEmail: eventType.user.email,
-        bookerName,
-        bookerEmail,
-        eventTitle: booking.eventType.title,
-        date,
-        startTime,
-        endTime,
-        durationMinutes: booking.eventType.durationMinutes,
-        notes,
-      }).catch((err) => console.error("[EMAIL ERROR] Host notification failed:", err?.message ?? err));
+      emailPromises.push(sendHostNotification(emailData));
     }
+    await Promise.allSettled(emailPromises);
 
     return NextResponse.json(booking, { status: 201 });
   } catch {

@@ -79,12 +79,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         hostEmail,
       };
 
-      // Notify booker
-      sendCancellationEmail(emailBase).catch(console.error);
-      // Notify host (only for real accounts, skip demo@cal.app)
+      // Await emails before returning (Vercel kills pending promises)
+      const cancelEmails: Promise<void>[] = [sendCancellationEmail(emailBase)];
       if (hostEmail !== "demo@cal.app") {
-        sendHostCancellationNotification(emailBase).catch(console.error);
+        cancelEmails.push(sendHostCancellationNotification(emailBase));
       }
+      await Promise.allSettled(cancelEmails);
 
       return NextResponse.json(updated);
     }
@@ -132,12 +132,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         oldStartTime: booking.startTime,
       };
 
-      // Notify booker
-      sendRescheduleEmail(rescheduleBase).catch(console.error);
-      // Notify host
+      // Await emails before returning (Vercel kills pending promises)
+      const rescheduleEmails: Promise<void>[] = [sendRescheduleEmail(rescheduleBase)];
       if (hostEmail !== "demo@cal.app") {
-        sendHostRescheduleNotification(rescheduleBase).catch(console.error);
+        rescheduleEmails.push(sendHostRescheduleNotification(rescheduleBase));
       }
+      await Promise.allSettled(rescheduleEmails);
 
       return NextResponse.json(newBooking);
     }
