@@ -1,154 +1,106 @@
-# Cal Clone — Scheduling Platform
+# Cal.com Clone
 
-A functional scheduling/booking web application that replicates Cal.com's design and user experience.
+A fully functional, modern, and high-performance clone of Cal.com built with **Next.js 14**, **Tailwind CSS**, **Prisma**, and **Clerk**. This application allows users to create configurable event types, manage their availability, and enable clients to smoothly book appointments across different timezones.
 
-## Tech Stack
+## ✨ Features
 
-| Layer     | Technology                          |
-|-----------|-------------------------------------|
-| Frontend  | Next.js 14 (App Router), React 18  |
-| Styling   | Tailwind CSS                        |
-| Backend   | Next.js API Routes (REST)           |
-| ORM       | Prisma                              |
-| Database  | PostgreSQL                          |
-| Icons     | Lucide React                        |
+### 📅 Advanced Scheduling & Bookings
+- **Dynamic Timezone Detection:** The booking page automatically detects the invitee's timezone, ensuring they only see slots in their local time.
+- **Smart Slot Filtering:** Unavailable times (past times during the current day, overlapping bookings) are automatically stripped from the user interface to prevent double bookings.
+- **Configurable Event Types:** Users can create custom event types with specific durations, pre- and post-buffer times, and custom URL slugs.
 
-## Features Implemented
+### 🔐 Authentication & Demo Mode
+- **Clerk Integration:** Full authentication flow powered by [Clerk](https://clerk.com).
+- **Graceful Unauthenticated Mode (Demo User):** The platform features a customized fallback "Demo User" account. Unauthenticated users can safely explore the user dashboard interfaces—but any destructive actions (Edit, Delete, Preview) trigger intuitive security toasts urging the user to log in.
 
-### Core
-- **Event Types Management** — Create, edit, delete event types with title, description, duration, and unique URL slug. List all on dashboard. Each has a unique public booking link (`/book/{slug}`).
-- **Availability Settings** — Set available days of the week with per-day time ranges. Timezone selection. Save/update.
-- **Public Booking Page** — Calendar view to select date. Displays available time slots based on availability rules. Booking form collects name + email + optional notes. Prevents double booking (overlap check). Confirmation page with full event details.
-- **Bookings Dashboard** — View upcoming bookings, past bookings, cancelled bookings (3 tabs). Cancel a booking.
+### 📧 Reliable Email Notifications
+- Uses **Nodemailer** alongside a robust wrapper (`safeSend`) designed to run gracefully on serverless environments like Vercel.
+- Integrated `Promise.allSettled` to prevent serverless function termination before the email completes sending.
+- Beautifully formatted HTML confirmation emails sent to both the invitee and the organizer, bundled with dynamic `BASE_URL` links ensuring reliable custom domain resolutions.
 
-### Bonus
-- **Responsive design** — Mobile hamburger nav, responsive layouts on all pages.
-- **Date overrides** — Schema + API support for blocking dates or setting custom hours.
-- **Toggle active/inactive** — Disable event types without deleting.
+### 💅 Premium UI / UX
+- **Mobile-First Responsiveness:** Thoroughly styled to collapse elegantly on mobile devices. Smooth slide-out mobile sidebars, scaling font styles, and responsive dropdowns.
+- **Apple/Vercel Aesthetic:** Uses `#111111` / off-whites, sleek grid outlines, polished `lucide-react` iconography, and subtle CSS transitions for a premium, lightweight interactive feel.
 
-## Database Schema (6 tables)
+## 🛠 Tech Stack
+- **Framework:** Next.js 14 (App Router)
+- **Styling:** Tailwind CSS
+- **Database:** PostgreSQL (Neon Serverless)
+- **ORM:** Prisma
+- **Auth:** Clerk
+- **Emails:** Nodemailer (via Gmail SMTP)
+- **Icons:** Lucide React
 
-- `users` — Default user (no auth per spec).
-- `event_types` — Booking definitions with unique slugs. `is_active` flag.
-- `availability_schedules` — Named schedules with timezone. Supports multiple (bonus).
-- `availability_rules` — Per-day-of-week time windows. One row per day.
-- `date_overrides` — Per-date exceptions: block or custom hours.
-- `bookings` — Confirmed/cancelled bookings. Composite index on `(event_type_id, date, status)` for fast availability queries.
+## 📂 Project Structure
 
-### Key Design Decisions
-1. **Separate rules from schedule** — normalization. One schedule → many day rules.
-2. **Store `end_time` on bookings** — denormalized from duration for efficient overlap queries.
-3. **`BookingStatus` enum** — extensible to `rescheduled`, `no_show` later.
-4. **Composite index** — `(event_type_id, date, status)` optimizes the most-frequent query: "what bookings exist for this event on this date?"
-
-## Project Structure
-
-```
-prisma/
-  schema.prisma          # Database schema (6 tables)
-  seed.js                # Sample data
-
+```bash
 src/
-  lib/
-    prisma.ts            # Prisma client singleton
-    slots.ts             # Slot calculation engine
-
-  app/
-    layout.tsx           # Root layout
-    page.tsx             # Redirect → /event-types
-    globals.css          # Tailwind + utility classes
-
-    (admin)/             # Admin pages (sidebar layout)
-      layout.tsx         # Sidebar + mobile nav
-      event-types/
-        page.tsx         # Dashboard list
-        new/page.tsx     # Create form
-        [id]/edit/page.tsx # Edit form
-      availability/
-        page.tsx         # Day toggles + time pickers
-      bookings/
-        page.tsx         # Upcoming/past/cancelled tabs
-
-    api/                 # REST API routes
-      event-types/       # GET, POST
-        [id]/            # GET, PUT, DELETE
-      availability/      # GET, PUT
-      slots/             # GET (computed availability)
-      bookings/          # GET, POST
-        [id]/            # PATCH (cancel)
-
-    book/[slug]/         # Public booking page
-      page.tsx           # Calendar → slots → form
-      confirmed/page.tsx # Confirmation
-
-  components/
-    admin/
-      Sidebar.tsx
-      EventTypeForm.tsx
-    booking/
-      CalendarPicker.tsx
-      TimeSlots.tsx
-      BookingForm.tsx
+├── app/
+│   ├── (admin)/             # Authenticated dashboard views (Event types, etc.)
+│   ├── api/                 # Next.js Route Handlers (Email, slots, webhooks)
+│   ├── book/[slug]/         # Public booking page for invitees
+│   └── page.tsx             # Marketing / Landing page
+├── components/
+│   ├── admin/               # Dashboard layout components (Sidebar, Navbar)
+│   └── booking/             # Interactive booking widgets (MiniCalendar, TimeSlots)
+├── lib/
+│   ├── email.ts             # Nodemailer configuration and raw HTML templates
+│   ├── prisma.ts            # Prisma client instantiation
+│   └── slots.ts             # Timezone and buffer-aware availability mathematics
+└── ...
 ```
 
-## Setup Instructions
+## 🚀 Getting Started
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL running locally or hosted (Neon, Supabase, etc.)
+### 1. Clone the repository
+```bash
+git clone https://github.com/Akshay000000/Cal.com_Clone.git
+cd Cal.com_Clone
+```
 
-### 1. Install dependencies
-
+### 2. Install dependencies
 ```bash
 npm install
 ```
 
-### 2. Configure database
+### 3. Setup Environment Variables
+Create a `.env` file in the root directory with the following variables:
 
+```env
+# Database
+DATABASE_URL="your_neon_postgres_url"
+
+# Clerk Auth
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your_clerk_pub_key"
+CLERK_SECRET_KEY="your_clerk_secret_key"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+# Application URL
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+
+# SMTP settings strictly configured for Vercel/Nodemailer compatibility
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="465"
+SMTP_SECURE="true"
+SMTP_USER="your_email@gmail.com"
+SMTP_PASS="your_gmail_app_password"
+SMTP_FROM="your_email@gmail.com"
+```
+
+### 4. Setup Database
+Push the Prisma schema to your PostgreSQL database to construct the initial tables.
 ```bash
-cp .env.example .env
+npx prisma db push
 ```
 
-Edit `.env` with your PostgreSQL connection string:
-```
-DATABASE_URL="postgresql://username:password@localhost:5432/cal_clone?schema=public"
-```
-
-### 3. Create tables and seed data
-
-```bash
-npx prisma migrate dev --name init
-npx prisma db seed
-```
-
-### 4. Run
-
+### 5. Run the Application
 ```bash
 npm run dev
 ```
+Navigate to `http://localhost:3000` to interact with the layout block. 
 
-Open http://localhost:3000
+## 🏗 Deployment
+This application is fully optimized for **Vercel**. Push your main branch and configure your environment variables mirroring the `.env` settings directly in your Vercel Project Settings.
 
-### 5. Test the booking flow
-
-1. Go to http://localhost:3000 — you'll see the Event Types dashboard
-2. Click the external link icon on any event type → opens the public booking page
-3. Select a date → pick a time slot → fill in name + email → confirm
-4. Check the Bookings tab to see it appear
-
-## Deployment
-
-1. Push to GitHub (public repo)
-2. Import in Vercel
-3. Set `DATABASE_URL` env var to your hosted PostgreSQL
-4. Vercel runs `postinstall` → `prisma generate` automatically
-5. Run `npx prisma migrate deploy` against production DB
-6. Run `npx prisma db seed` for initial data
-
-## Assumptions
-
-- Single default user (id: 1) assumed logged in — no authentication
-- Time stored as `"HH:mm"` strings, dates as `"YYYY-MM-DD"` strings
-- Slot intervals equal the event duration (no overlapping slots)
-- Timezone is informational display — slot math uses server time
-- The public booking page fetches event types by slug from the same API
+Make sure `NEXT_PUBLIC_BASE_URL` is configured to the exact production domain (e.g., `https://akshaycal.vercel.app`) to ensure email links route correctly.
