@@ -289,7 +289,7 @@ export default function LandingPage() {
             {/* CTA buttons */}
             <div className="flex items-center gap-3">
               <Link
-                href="/event-types"
+                href="/sign-up"
                 className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1a1a1a] px-6 py-3 text-[15px] font-semibold text-white hover:bg-black transition-all shadow-md hover:shadow-lg"
               >
                 Get started <ChevronRight className="h-4 w-4 opacity-80" />
@@ -412,7 +412,7 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
-              href="/event-types"
+              href="/sign-up"
               className="inline-flex items-center gap-1 rounded-lg bg-[#292929] px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-[#1a1a1a] transition-colors"
             >
               Get started <ChevronRight className="h-3.5 w-3.5" />
@@ -615,7 +615,7 @@ export default function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
-              href="/event-types"
+              href="/sign-up"
               className="inline-flex items-center gap-1 rounded-lg bg-[#292929] px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-[#1a1a1a] transition-colors"
             >
               Get started <ChevronRight className="h-3.5 w-3.5" />

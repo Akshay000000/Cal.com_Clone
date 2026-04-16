@@ -192,12 +192,12 @@ export default function Navbar() {
           <>
             <Link
               href="/sign-in"
-              className="hidden sm:inline-flex text-[14px] font-semibold text-[#1a1a1a] hover:opacity-70 transition-opacity"
+              className="inline-flex text-[14px] font-semibold text-[#1a1a1a] hover:opacity-70 transition-opacity"
             >
               Sign in
             </Link>
             <Link
-              href="/event-types"
+              href="/sign-up"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#1a1a1a] px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-black transition-colors"
             >
               Get started <ChevronRight className="h-4 w-4 opacity-70" />
