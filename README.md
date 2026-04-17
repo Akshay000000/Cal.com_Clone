@@ -14,25 +14,25 @@ A production-grade, full-stack scheduling platform inspired by [Cal.com](https:/
 
 ---
 
-## ✨ Features
+##  Features
 
-### 📅 Scheduling & Bookings
+###  Scheduling & Bookings
 - Create events with custom durations (15 / 30 / 60 / 90 min), unique URL slugs, buffer times, and custom booking questions
 - Timezone-aware slot generation — filters past times and accounts for buffer periods
 - **Cross-event-type double-booking prevention** — conflict detection spans all of a host's event types, not just the one being booked
 - Full booking lifecycle: **confirm → reschedule → cancel** with status tracking and chain references
 
-### 🌐 Timezone Intelligence
+###  Timezone Intelligence
 - Auto-detects the invitee's local timezone via the browser
 - Slots rendered in the invitee's timezone, stored in the host's timezone
 - Past slots on the current day are automatically hidden
 
-### 🔐 Authentication & Demo Mode
+###  Authentication & Demo Mode
 - **Clerk** sign-up / sign-in with automatic database user provisioning
 - **Demo Mode** — unauthenticated visitors get a fully seeded account with sample events, bookings, and availability
 - Edit / delete / create actions are gated behind auth with informative sign-in prompts
 
-### 📧 Email Notifications (6 types)
+###  Email Notifications (6 types)
 - Booking confirmation → invitee
 - New booking alert → host
 - Cancellation notice → invitee & host
@@ -40,7 +40,7 @@ A production-grade, full-stack scheduling platform inspired by [Cal.com](https:/
 - **Automated 24-hour reminders** via Vercel Cron (runs daily at 9 AM UTC)
 - Serverless-safe delivery using `Promise.allSettled` and the `safeSend` wrapper
 
-### 💅 Premium UI / UX
+###  Premium UI / UX
 - Dark theme with Vercel/Apple-inspired `#111111` design language
 - Mobile-first responsive layout with slide-out sidebar
 - Micro-animations, hover effects, and smooth transitions
@@ -48,7 +48,7 @@ A production-grade, full-stack scheduling platform inspired by [Cal.com](https:/
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Category | Technology | Purpose |
 |:---------|:-----------|:--------|
@@ -64,7 +64,7 @@ A production-grade, full-stack scheduling platform inspired by [Cal.com](https:/
 
 ---
 
-## 🏗 Project Architecture
+##  Project Architecture
 
 ```
 cal-clone/
@@ -120,7 +120,7 @@ cal-clone/
 
 ---
 
-## 📧 Email Notification System
+##  Email Notification System
 
 The email system in `src/lib/email.ts` is built for serverless (Vercel):
 
@@ -147,7 +147,7 @@ Configured in `vercel.json` to run daily at `09:00 UTC`. The job finds confirmed
 
 ---
 
-## 🔒 Double-Booking Prevention
+##  Double-Booking Prevention
 
 Conflicts are blocked at **three layers**:
 
@@ -161,7 +161,7 @@ Conflicts are blocked at **three layers**:
 
 ---
 
-## 📊 Database Schema
+##  Database Schema
 
 **8 models** defined in `prisma/schema.prisma`:
 
@@ -184,7 +184,7 @@ Conflicts are blocked at **three layers**:
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -244,7 +244,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 ---
 
-## 🌐 Deployment
+##  Deployment
 
 This app is optimized for **Vercel**:
 
@@ -261,4 +261,4 @@ Open source under the [MIT License](LICENSE).
 
 ---
 
-**Built by [Akshay](https://akshaycal.vercel.app)** ✦
+**Built by [Akshay]([https://akshaycal.vercel.app](https://www.linkedin.com/in/akshay-sriram-6b8215296/))** ✦
