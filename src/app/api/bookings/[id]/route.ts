@@ -92,7 +92,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     // ── Reschedule ───────────────────────────────────────────────────────────
     if (status === "rescheduled" && date && startTime && endTime) {
       const existing = await prisma.booking.findMany({
-        where: { eventTypeId: booking.eventTypeId, date, status: "confirmed" },
+        where: {
+          eventType: { userId: booking.eventType.userId },
+          date,
+          status: "confirmed",
+          id: { not: booking.id }, // exclude the booking being rescheduled
+        },
       });
       const conflict = existing.some((b) => hasOverlap({ startTime, endTime }, b));
       if (conflict)

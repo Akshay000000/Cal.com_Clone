@@ -27,8 +27,13 @@ export async function GET(req: NextRequest) {
     const dayOfWeek = new Date(date + "T00:00:00").getUTCDay();
     const window = getWindowForDate(date, dayOfWeek, schedule.rules, schedule.dateOverrides);
 
+    // Check ALL bookings for this host (across all event types) to prevent double-booking
     const existingBookings = await prisma.booking.findMany({
-      where: { eventTypeId: eventType.id, date, status: "confirmed" },
+      where: {
+        eventType: { userId: eventType.userId },
+        date,
+        status: "confirmed",
+      },
       select: { startTime: true, endTime: true },
     });
 

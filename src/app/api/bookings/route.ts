@@ -57,9 +57,13 @@ export async function POST(req: NextRequest) {
     if (!eventType || !eventType.isActive)
       return NextResponse.json({ error: "Event type not found" }, { status: 404 });
 
-    // Double-booking prevention
+    // Double-booking prevention: check ALL event types for this host
     const existing = await prisma.booking.findMany({
-      where: { eventTypeId, date, status: "confirmed" },
+      where: {
+        eventType: { userId: eventType.userId },
+        date,
+        status: "confirmed",
+      },
     });
     const conflict = existing.some((b) =>
       hasOverlap({ startTime, endTime }, b)
