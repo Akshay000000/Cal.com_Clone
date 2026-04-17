@@ -212,7 +212,6 @@ npx prisma db push
 npm run dev
 ```
 
-Open **http://localhost:3000** — no login required, demo mode auto-seeds sample data.
 
 ### Environment Variables
 
