@@ -261,4 +261,4 @@ Open source under the [MIT License](LICENSE).
 
 ---
 
-**Built by [Akshay]([https://akshaycal.vercel.app](https://www.linkedin.com/in/akshay-sriram-6b8215296/))** ✦
+**Built by [Akshay](https://www.linkedin.com/in/akshay-sriram-6b8215296/)** ✦
